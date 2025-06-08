@@ -180,26 +180,25 @@ WSGI_APPLICATION = 'hubconfig.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-if DEBUG:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
     }
-else:
-    CONN_MAX_AGE = config("CONN_MAX_AGE", cast=int, default=300)
-    DATABASE_URL = config("DATABASE_URL", default=None)
+}
 
-    if DATABASE_URL is not None:
-        DATABASES = {
-            "default": dj_database_url.config(
-                default=DATABASE_URL,
-                conn_max_age=CONN_MAX_AGE,
-                conn_health_checks=True,
-            )
-        }
+CONN_MAX_AGE = config("CONN_MAX_AGE", cast=int, default=300)
+DATABASE_URL = config("DATABASE_URL", default=None)
 
+if DATABASE_URL is not None:
+    import dj_database_url
+    DATABASES = {
+        "default": dj_database_url.config(
+            default=DATABASE_URL,
+            conn_max_age=CONN_MAX_AGE,
+            conn_health_checks=True,
+        )
+    }
 
 # Add these at the top of your settings.py
 # from os import getenv

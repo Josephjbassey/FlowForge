@@ -31,6 +31,7 @@ RUN apt-get update && apt-get install -y \
 
 # Set the path to npm explicitly (for use in Django settings)
 ENV NPM_BIN_PATH=/usr/bin/npm
+ENV DJANGO_SETTINGS_MODULE=hubconfig.settings
 
 # Create the project directory
 RUN mkdir -p /code
