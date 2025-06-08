@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 from decouple import config
 from pathlib import Path
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -183,8 +184,7 @@ else:
     CONN_MAX_AGE = config("CONN_MAX_AGE", cast=int, default=300)
     DATABASE_URL = config("DATABASE_URL", default=None)
 
-    if DATABASE_URL is not None:
-        import dj_database_url
+    if DATABASE_URL is not None
         DATABASES = {
             "default": dj_database_url.config(
                 default=DATABASE_URL,
