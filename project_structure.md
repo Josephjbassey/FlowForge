@@ -1,63 +1,78 @@
-# 🗂️ Project Structure – SaaS Automation Platform
+# 🗂️ Project Structure – FlowForge SaaS Automation Platform
 
 ```bash
-saas_project/
+FlowForge/
 │
-├── manage.py
 ├── requirements.txt
-├── .env                  # environment variables (API keys, DB, Stripe, etc.)
+├── .env                  # Environment variables (DB URL, secrets, Stripe, etc.)
 │
-├── config/               # Django project settings
-│   ├── __init__.py
-│   ├── settings.py
-│   ├── urls.py
-│   ├── wsgi.py
-│   └── asgi.py
+├── src/                  # Main Django project and modular apps
+│   │
+│   ├── billing/          # Stripe billing, payments, and invoicing
+│   │   ├── models.py     # Plans, Subscriptions, Invoices
+│   │   ├── signals.py    # Stripe webhook handlers
+│   │   ├── views.py      # Payment flow views
+│   │   ├── urls.py
+│   │   └── utils.py      # Stripe helpers
+│   │
+│   ├── blueprints/       # AI-powered blueprint generator
+│   │   ├── models.py     # Blueprint, Versions, Exported files
+│   │   ├── views.py
+│   │   ├── tasks.py      # Celery: AI calls, PDF gen
+│   │   ├── urls.py
+│   │   ├── prompts.py    # Prompt templates & logic
+│   │   ├── services.py   # GPT/OpenAI integrations
+│   │   └── utils.py
+│   │
+│   ├── common/           # Shared utilities, mixins, and helpers
+│   │   ├── decorators.py
+│   │   ├── helpers.py
+│   │   └── constants.py
+│   │
+│   ├── hubconfig/        # Project-level Django settings
+│   │   ├── __init__.py
+│   │   ├── settings.py
+│   │   ├── urls.py
+│   │   ├── wsgi.py
+│   │   └── asgi.py
+│   │
+│   ├── local-cdn/        # Optional local CDN for assets (fonts, libs)
+│   │
+│   ├── staticfiles/      # Static: CSS, JS, logos, Mermaid, etc.
+│   │
+│   ├── styling/          # Tailwind CSS, custom themes, UI settings
+│   │   ├── __init__.py 
+│   │   ├── settings.py
+│   │   ├── static_src/
+│   │   ├── templates/     # Django templates (Tailwind + HTMX compatible)
+│   │   └── apps.py 
+│   │
+│   │
+│   ├── teams/            # Team collaboration, invites, roles
+│   │   ├── models.py
+│   │   ├── views.py
+│   │   ├── urls.py
+│   │   └── serializers.py
+│   │
+│   ├── users/            # Authentication, profiles, and permissions
+│   │   ├── models.py
+│   │   ├── views.py
+│   │   ├── urls.py
+│   │   ├── serializers.py
+│   │   └── forms.py
+│   │
+│   ├── workflows/        # Automation flow UI (drag-and-drop + logic)
+│   │   ├── models.py
+│   │   ├── views.py
+│   │   ├── urls.py
+│   │   ├── serializers.py
+│   │   └── utils.py
+│   │
+│   └── manage.py
 │
-├── users/                # Custom user model + auth extensions
-│   ├── models.py         # UserProfile, TeamMember, Roles
-│   ├── views.py
-│   ├── serializers.py    # if using DRF
-│   ├── urls.py
-│   └── forms.py
-│
-├── billing/              # Stripe + Subscription Management
-│   ├── models.py         # Plans, Subscriptions, Invoices
-│   ├── signals.py        # webhook handlers (stripe events)
-│   ├── views.py          # payment endpoints, billing dashboard
-│   ├── urls.py
-│   └── utils.py          # Stripe API helpers
-│
-├── blueprints/           # Core AI Blueprint Generator app
-│   ├── models.py         # Blueprint, BlueprintVersion, Export
-│   ├── views.py          # Create blueprint, view blueprint, export PDF
-│   ├── tasks.py          # Celery async tasks (AI call, PDF gen)
-│   ├── urls.py
-│   ├── serializers.py    # if using DRF
-│   ├── prompts.py        # GPT prompt templates & logic
-│   ├── services.py       # AI integration services (OpenAI/Claude calls)
-│   └── utils.py          # helper functions (workflow parsing, validation)
-│
-├── workflows/            # Visualization and editing (frontend + backend)
-│   ├── models.py         # WorkflowStep, WorkflowConnection
-│   ├── views.py          # API endpoints for drag/drop UI
-│   ├── urls.py
-│   ├── serializers.py
-│   └── utils.py          # e.g., Mermaid.js JSON converters
-│
-├── teams/                # Team collaboration, roles, permissions
-│   ├── models.py         # Team, TeamMember, Role, Permissions
-│   ├── views.py
-│   ├── urls.py
-│   └── serializers.py
-│
-├── common/               # Shared utilities, mixins, and decorators
-│   ├── decorators.py     # permissions, throttle, etc.
-│   ├── helpers.py        # common helper functions
-│   └── constants.py
-│
-├── templates/            # Django templates (HTML + Tailwind CSS)
-│
-├── static/               # Static files: CSS, JS, images, Mermaid assets
-│
-└── celery.py             # Celery app configuration for async tasks
+├── db.sqlite3            # SQLite for local dev (can be replaced by Postgres)
+├── .gitignore
+├── Dockerfile
+├── project_structure.md  # 🗂️ This file
+├── README.md             # 📘 Project Overview
+└── .env.example          # Example environment variables
