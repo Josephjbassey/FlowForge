@@ -20,6 +20,7 @@ RUN apt-get update && apt-get install -y \
     gnupg \
     ca-certificates \
     nodejs \
+    git \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Optional: install Node.js (latest LTS)
