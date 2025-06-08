@@ -41,10 +41,6 @@ COPY requirements.txt /tmp/requirements.txt
 COPY ./src /code
 RUN pip install -r /tmp/requirements.txt
 
-# Tailwind build (optional: wrap in try block if fragile)
-RUN python manage.py tailwind install
-RUN python manage.py tailwind build
-
 # Collect static files
 RUN python manage.py vendor_pull
 RUN python manage.py collectstatic --noinput
