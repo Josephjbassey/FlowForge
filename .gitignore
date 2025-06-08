@@ -4,7 +4,6 @@ src/staticfiles/vendors
 # ignore local static file root
 # or "local cdn"
 local-cdn/
-src/local-cdn
 
 .DS_Store
 venv/
@@ -133,7 +132,7 @@ celerybeat.pid
 
 # Environments
 .env
-.venv/
+.venv
 env/
 venv/
 ENV/
