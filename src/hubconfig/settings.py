@@ -15,6 +15,12 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Create superuser credentials
+# These are used to create a superuser account during the first run of the application.
+# DJANGO_SUPERUSER_USERNAME = config("DJANGO_SUPERUSER_USERNAME")
+# DJANGO_SUPERUSER_EMAIL = config("DJANGO_SUPERUSER_EMAIL")
+# DJANGO_SUPERUSER_PASSWORD = config("DJANGO_SUPERUSER_PASSWORD")
+
 # Email Config
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = config("EMAIL_HOST", cast=str, default="smtp.gmail.com")
