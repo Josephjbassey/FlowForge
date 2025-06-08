@@ -4,7 +4,7 @@ src/staticfiles/vendors
 # ignore local static file root
 # or "local cdn"
 local-cdn/
-src/local-cdn/
+src/local-cdn
 
 .DS_Store
 venv/
