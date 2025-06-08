@@ -43,7 +43,7 @@ RUN mkdir -p /code/theme/static/vendor && \
     curl -o /code/theme/static/vendor/alpine.min.js https://unpkg.com/alpinejs@3.13.1/dist/cdn.min.js
 
 # Build Tailwind assets
-WORKDIR /code/theme/static_src
+WORKDIR /code/styling/static_src
 RUN npm install && npm run build
 
 # Return to main project dir for collectstatic
