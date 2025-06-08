@@ -1,14 +1,14 @@
-# Set the Python version as a build-time argument
+# Base Python image
 ARG PYTHON_VERSION=3.12-slim-bullseye
 FROM python:${PYTHON_VERSION}
 
-# Set environment variables for Python
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
+# Create virtual environment
+RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-# Create and activate virtual environment
-RUN python -m venv /opt/venv
+# Prevent .pyc files and enable unbuffered logs
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -18,55 +18,57 @@ RUN apt-get update && apt-get install -y \
     libcairo2 \
     curl \
     gnupg \
-    ca-certificates
+    ca-certificates \
+    nodejs \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Install Node.js (for Tailwind support)
+# Optional: install Node.js (latest LTS)
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
     apt-get install -y nodejs
 
-# Clean up to reduce image size
-RUN apt-get clean && rm -rf /var/lib/apt/lists/*
-
-# Create app directory
-RUN mkdir -p /code
+# Set working directory
 WORKDIR /code
 
-# Copy project files
-COPY ./src /code
-
-# Copy requirements and install
+# Copy project requirements and install them
 COPY requirements.txt /tmp/requirements.txt
 RUN pip install --upgrade pip && pip install -r /tmp/requirements.txt
 
-# Optional: copy local CDN (e.g., /static/vendor/)
-COPY ./static /code/static
+# Copy the entire source code
+COPY ./src /code
 
-# Tailwind Build Step
+# Add local CDN libraries (e.g., HTMX, Alpine.js)
+RUN mkdir -p /code/theme/static/vendor && \
+    curl -o /code/theme/static/vendor/htmx.min.js https://unpkg.com/htmx.org@1.9.2 && \
+    curl -o /code/theme/static/vendor/alpine.min.js https://unpkg.com/alpinejs@3.13.1/dist/cdn.min.js
+
+# Build Tailwind assets
 WORKDIR /code/theme/static_src
 RUN npm install && npm run build
 
-# Back to main directory for Django commands
+# Return to main project dir for collectstatic
 WORKDIR /code
 
-# Set environment variables
+# Pull vendor assets and collect static files
+RUN python manage.py vendor_pull
+RUN python manage.py collectstatic --noinput
+
+# Environment variables
 ARG DJANGO_SECRET_KEY
 ENV DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
 
 ARG DJANGO_DEBUG=0
 ENV DJANGO_DEBUG=${DJANGO_DEBUG}
 
-# Django static and vendor
-RUN python manage.py vendor_pull
-RUN python manage.py collectstatic --noinput
-
-# Set project name for Gunicorn
+# Default project entry (update as needed)
 ARG PROJ_NAME="hubconfig"
 
-# Start script
+# Create startup script
 RUN printf "#!/bin/bash\n" > ./paracord_runner.sh && \
     printf "RUN_PORT=\"\${PORT:-8000}\"\n\n" >> ./paracord_runner.sh && \
     printf "python manage.py migrate --no-input\n" >> ./paracord_runner.sh && \
     printf "gunicorn ${PROJ_NAME}.wsgi:application --bind \"0.0.0.0:\$RUN_PORT\"\n" >> ./paracord_runner.sh
+
 RUN chmod +x paracord_runner.sh
 
-CMD ["./paracord_runner.sh"]
+# Final command
+CMD ./paracord_runner.sh
