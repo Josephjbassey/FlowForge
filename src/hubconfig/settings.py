@@ -9,6 +9,8 @@ https://docs.djangoproject.com/en/4.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
+import os
+import platform
 from decouple import config
 from pathlib import Path
 import dj_database_url
@@ -75,6 +77,11 @@ CSRF_TRUSTED_ORIGINS = [
    # "https://saassample-production-9246.up.railway.app",
 ]
 
+# Detect platform to set correct npm binary path
+if platform.system() == "Windows":
+    NPM_BIN_PATH = os.environ.get("NPM_BIN_PATH", "npm.cmd")
+else:
+    NPM_BIN_PATH = os.environ.get("NPM_BIN_PATH", "/usr/local/bin/npm")
 
 # Application definition
 

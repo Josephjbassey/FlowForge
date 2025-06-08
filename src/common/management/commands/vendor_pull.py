@@ -1,4 +1,4 @@
-import common as helpers
+import helpers
 
 from typing import Any
 from django.conf import settings

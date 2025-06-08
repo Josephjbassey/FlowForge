@@ -1,4 +1,4 @@
-import common.billing
+import common.helpers.billing as helpers
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
@@ -26,7 +26,7 @@ def user_subscription_cancel_view(request,):
     user_sub_obj, created = UserSubscription.objects.get_or_create(user=request.user)
     if request.method == "POST":
         if user_sub_obj.stripe_id and user_sub_obj.is_active_status:
-            sub_data = common.billing.cancel_subscription(
+            sub_data = helpers.cancel_subscription(
                 user_sub_obj.stripe_id, 
                 reason="User wanted to end", 
                 feedback="other",

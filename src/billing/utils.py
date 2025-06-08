@@ -1,6 +1,6 @@
-import common.billing
+import common.helpers.billing as helpers
 from django.db.models import Q
-from customers.models import Customer
+from users.models import Customer
 from billing.models import Subscription, UserSubscription, SubscriptionStatus
 
 
@@ -29,7 +29,7 @@ def refresh_active_users_subscriptions(
         if verbose:
             print("Updating user", obj.user, obj.subscription, obj.current_period_end)
         if obj.stripe_id:
-            sub_data = common.billing.get_subscription(obj.stripe_id, raw=False)
+            sub_data = helpers.get_subscription(obj.stripe_id, raw=False)
             for k,v in sub_data.items():
                 setattr(obj, k, v)
             obj.save()
@@ -42,12 +42,12 @@ def clear_dangling_subs():
         user = customer_obj.user
         customer_stripe_id = customer_obj.stripe_id
         print(f"Sync {user} - {customer_stripe_id} subs and remove old ones")
-        subs =  common.billing.get_customer_active_subscriptions(customer_stripe_id)
+        subs =  helpers.get_customer_active_subscriptions(customer_stripe_id)
         for sub in subs:
             existing_user_subs_qs = UserSubscription.objects.filter(stripe_id__iexact=f"{sub.id}".strip())
             if existing_user_subs_qs.exists():
                 continue
-            common.billing.cancel_subscription(sub.id, reason="Dangling active subscription", cancel_at_period_end=False)
+            helpers.cancel_subscription(sub.id, reason="Dangling active subscription", cancel_at_period_end=False)
             # print(sub.id, existing_user_subs_qs.exists())
 
 def sync_subs_group_permissions():

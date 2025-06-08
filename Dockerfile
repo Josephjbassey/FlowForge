@@ -2,9 +2,14 @@
 ARG PYTHON_VERSION=3.12-slim-bullseye
 FROM python:${PYTHON_VERSION}
 
-# Create virtual environment
+# Create a virtual environment
 RUN python -m venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
+
+# Set the virtual environment as the current location
+ENV PATH=/opt/venv/bin:$PATH
+
+# Upgrade pip
+RUN pip install --upgrade pip
 
 # Prevent .pyc files and enable unbuffered logs
 ENV PYTHONDONTWRITEBYTECODE 1
@@ -19,46 +24,46 @@ RUN apt-get update && apt-get install -y \
     curl \
     gnupg \
     ca-certificates \
-    nodejs \
     git \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+    nodejs \
+    npm \
+    && rm -rf /var/lib/apt/lists/*
 
-# Optional: install Node.js (latest LTS)
-RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
-    apt-get install -y nodejs
+# Set the path to npm explicitly (for use in Django settings)
+ENV NPM_BIN_PATH=/usr/bin/npm
+
+# Create the project directory
+RUN mkdir -p /code
 
 # Set working directory
 WORKDIR /code
 
 # Copy project requirements and install them
 COPY requirements.txt /tmp/requirements.txt
-RUN pip install --upgrade pip && pip install -r /tmp/requirements.txt
 
-# Copy the entire source code
+# copy the project code into the container's working directory
 COPY ./src /code
 
-# Add local CDN libraries (e.g., HTMX, Alpine.js)
-RUN mkdir -p /code/theme/static/vendor && \
-    curl -o /code/theme/static/vendor/htmx.min.js https://unpkg.com/htmx.org@1.9.2 && \
-    curl -o /code/theme/static/vendor/alpine.min.js https://unpkg.com/alpinejs@3.13.1/dist/cdn.min.js
+# Install the Python project requirements
+RUN pip install -r /tmp/requirements.txt
 
-# Build Tailwind assets
-WORKDIR /code/styling/static_src
-RUN npm install && npm run build
+# Install  dependencies
+RUN python manage.py tailwind install
+RUN python manage.py tailwind build
 
 # Return to main project dir for collectstatic
 WORKDIR /code
 
-# Pull vendor assets and collect static files
-RUN python manage.py vendor_pull
-RUN python manage.py collectstatic --noinput
-
 # Environment variables
-ARG DJANGO_SECRET_KEY
-ENV DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
+ARG PROD_SECRET_KEY
+ENV PROD_SECRET_KEY=${PROD_SECRET_KEY}
 
 ARG DJANGO_DEBUG=0
 ENV DJANGO_DEBUG=${DJANGO_DEBUG}
+
+# Pull vendor assets and collect static files
+RUN python manage.py vendor_pull
+RUN python manage.py collectstatic --noinput
 
 # Default project entry (update as needed)
 ARG PROJ_NAME="hubconfig"
@@ -71,5 +76,12 @@ RUN printf "#!/bin/bash\n" > ./paracord_runner.sh && \
 
 RUN chmod +x paracord_runner.sh
 
-# Final command
+# Clean up apt cache to reduce image size
+RUN apt-get remove --purge -y \
+    && apt-get autoremove -y \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Run the Django project via the runtime script
+# when the container starts
 CMD ./paracord_runner.sh

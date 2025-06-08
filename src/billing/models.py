@@ -1,5 +1,5 @@
 import datetime
-import common.billing
+import common.helpers.billing as helpers
 from django.db import models
 from django.db.models import Q
 from django.contrib.auth.models import Group, Permission
@@ -12,10 +12,11 @@ User = settings.AUTH_USER_MODEL # "auth.User"
 
 ALLOW_CUSTOM_GROUPS = True
 SUBSCRIPTION_PERMISSIONS = [
-    ("advanced", "Advanced Perm"), # subscriptions.advanced
-    ("pro", "Pro Perm"),  # subscriptions.pro
-    ("basic", "Basic Perm"),  # subscriptions.basic,
-    ("basic_ai", "Basic AI Perm")
+    ("free", "Free Perm"),  # subscription.free
+    ("premium", "Premium Perm"),  # subscription.premium
+    ("team", "Team Perm"),  # subscription.team
+    ("team_pro", "Team Pro Perm"),  # subscription.team_pro
+    ("enterpriee", "Enterprise Perm"),  # subscription.enterprise
 ]
 
 
@@ -54,7 +55,7 @@ class Subscription(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.stripe_id:
-            stripe_id = common.billing.create_product(
+            stripe_id = helpers.create_product(
                     name=self.name, 
                     metadata={
                         "subscription_plan_id": self.id
@@ -132,7 +133,7 @@ class SubscriptionPrice(models.Model):
     def save(self, *args, **kwargs):
         if (not self.stripe_id and 
             self.product_stripe_id is not None):
-            stripe_id = common.billing.create_price(
+            stripe_id = helpers.create_price(
                 currency=self.stripe_currency,
                 unit_amount=self.stripe_price,
                 interval=self.interval,
